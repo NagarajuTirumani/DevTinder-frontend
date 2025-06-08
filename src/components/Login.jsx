@@ -1,10 +1,16 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { API_URL } from "../utils/constants";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "nagaraju@gmail.com",
+    password: "Nagaraju@44",
   });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -15,8 +21,17 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log("Login data:", formData);
+    axios
+      .post(`${API_URL}/login`, formData)
+      .then((response) => {
+        toast.success("Login successful! Redirecting...");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      })
+      .catch((error) => {
+        toast.error(error.response?.data?.message || "Invalid credentials");
+      });
   };
 
   return (
@@ -24,7 +39,7 @@ const Login = () => {
       className="flex items-center justify-center bg-gray-50"
       style={{ height: "calc(100vh - 64px)" }}
     >
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md mb-20">
         <h2 className="text-3xl font-bold text-center text-gray-900">Login</h2>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -69,6 +84,18 @@ const Login = () => {
           </button>
         </form>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

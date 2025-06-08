@@ -4,6 +4,7 @@ import Login from "./components/Login.jsx";
 import Signup from "./components/Signup.jsx";
 import Profile from "./components/Profile.jsx";
 import Body from "./components/Body.jsx";
+import Feed from "./components/Feed.jsx";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Body />}>
+            <Route index element={<Feed />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/profile" element={<Profile />} />
