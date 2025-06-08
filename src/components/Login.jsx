@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { API_URL } from "../utils/constants";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+
+import { addUser } from "../store/slice";
+import { API_URL } from "../utils/constants";
+
 import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
@@ -11,6 +15,7 @@ const Login = () => {
     password: "Nagaraju@44",
   });
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -27,6 +32,7 @@ const Login = () => {
         toast.success("Login successful! Redirecting...");
         setTimeout(() => {
           navigate("/");
+          dispatch(addUser(response.data.data));
         }, 2000);
       })
       .catch((error) => {
