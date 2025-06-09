@@ -1,9 +1,35 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar';
-import Footer from './Footer';
+import React, { useEffect } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+
+import Navbar from "./Navbar";
+import Footer from "./Footer";
+import { API_URL } from "../utils/constants";
+import { addUser } from "../store/slice";
 
 const Body = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.appData);
+
+  const fetchUser = async () => {
+    try {
+      if (user) return;
+      const response = await axios.get(`${API_URL}/profile/view`, {});
+      if (response.data.data) {
+        dispatch(addUser(response.data.data));
+      } else {
+        navigate("/login", { replace: true });
+      }
+    } catch (error) {
+      navigate("/login", { replace: true });
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -15,4 +41,4 @@ const Body = () => {
   );
 };
 
-export default Body; 
+export default Body;
