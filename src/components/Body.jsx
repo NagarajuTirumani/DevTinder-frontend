@@ -31,9 +31,9 @@ const Body = () => {
     fetchUser();
   }, []);
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Navbar />
-      <main className="container mx-auto">
+      <main className="bg-base-100" style={{ height: "calc(100vh - 64px)" }}>
         <Outlet />
       </main>
       <Footer />

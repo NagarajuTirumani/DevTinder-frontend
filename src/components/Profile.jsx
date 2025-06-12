@@ -82,23 +82,22 @@ const Profile = () => {
 
   return (
     <div
-      className="bg-gray-50 flex justify-center items-center"
-      style={{ height: "calc(100vh - 64px)" }}
+      className="bg-base-100 flex justify-center items-start p-4 md:p-6 lg:p-8"
     >
-      <div className="w-[50%] mx-auto bg-white rounded-lg shadow-md p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-900">Profile</h2>
+      <div className="w-full md:w-[80%] lg:w-[50%] mx-auto bg-base-300 rounded-lg shadow-md p-4 md:p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
+          <h2 className="text-2xl md:text-3xl font-bold text-base-content">Profile</h2>
           {!isEditing ? (
             <button
               onClick={handleEdit}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-500 text-primary-content rounded-md hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
             >
               Edit Profile
             </button>
           ) : (
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white rounded-md hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
             >
               Save Changes
             </button>
@@ -106,11 +105,11 @@ const Profile = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center space-x-8">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:space-x-8">
             <img
               src={profile.imgUrl}
               alt="Profile"
-              className="w-32 h-32 rounded-full object-cover shadow-lg"
+              className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-lg"
             />
             {isEditing && (
               <input
@@ -119,14 +118,14 @@ const Profile = () => {
                 value={profile.imgUrl}
                 onChange={handleChange}
                 placeholder="Enter image URL"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full mt-1 px-3 py-2 bg-base-200 border border-base-content/20 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-base-content"
               />
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-base-content/80">
                 First Name
               </label>
               {isEditing ? (
@@ -135,17 +134,17 @@ const Profile = () => {
                   name="firstName"
                   value={profile.firstName}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-3 py-2 bg-base-200 border border-base-content/20 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-base-content"
                 />
               ) : (
-                <p className="mt-1 text-lg text-gray-900">
+                <p className="mt-1 text-lg text-base-content">
                   {profile.firstName}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-base-content/80">
                 Last Name
               </label>
               {isEditing ? (
@@ -154,24 +153,24 @@ const Profile = () => {
                   name="lastName"
                   value={profile.lastName}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-3 py-2 bg-base-200 border border-base-content/20 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-base-content"
                 />
               ) : (
-                <p className="mt-1 text-lg text-gray-900">{profile.lastName}</p>
+                <p className="mt-1 text-lg text-base-content">{profile.lastName}</p>
               )}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-base-content/80">
               Email
             </label>
-            <p className="mt-1 text-lg text-gray-900">{profile.email}</p>
+            <p className="mt-1 text-lg text-base-content break-all">{profile.email}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-base-content/80">
                 Age
               </label>
               {isEditing ? (
@@ -182,15 +181,15 @@ const Profile = () => {
                   onChange={handleChange}
                   min="1"
                   max="100"
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-3 py-2 bg-base-200 border border-base-content/20 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-base-content"
                 />
               ) : (
-                <p className="mt-1 text-lg text-gray-900">{profile.age}</p>
+                <p className="mt-1 text-lg text-base-content">{profile.age}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-base-content/80">
                 Gender
               </label>
               {isEditing ? (
@@ -198,7 +197,7 @@ const Profile = () => {
                   name="gender"
                   value={profile.gender}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="mt-1 block w-full px-3 py-2 bg-base-200 border border-base-content/20 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-base-content"
                 >
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
@@ -206,13 +205,13 @@ const Profile = () => {
                   <option value="Other">Other</option>
                 </select>
               ) : (
-                <p className="mt-1 text-lg text-gray-900">{profile.gender}</p>
+                <p className="mt-1 text-lg text-base-content">{profile.gender}</p>
               )}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-base-content/80">
               Bio
             </label>
             {isEditing ? (
@@ -221,21 +220,21 @@ const Profile = () => {
                 value={profile.about}
                 onChange={handleChange}
                 rows={3}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                className="mt-1 block w-full px-3 py-2 bg-base-200 border border-base-content/20 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-base-content resize-none"
               />
             ) : (
-              <p className="mt-1 text-lg text-gray-900">{profile.about}</p>
+              <p className="mt-1 text-lg text-base-content whitespace-pre-wrap">{profile.about}</p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-base-content/80 mb-2">
               Skills
             </label>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pb-8">
               {profile.skills.map((skill, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm"
+                  className="px-3 py-1 bg-gradient-to-r from-primary/80 to-secondary/80 text-primary-content rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-shadow duration-200"
                 >
                   {skill}
                 </span>
