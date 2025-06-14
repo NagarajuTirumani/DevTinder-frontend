@@ -86,7 +86,28 @@ const Profile = () => {
       style={{ minHeight: "calc(100vh - 64px)" }}
     >
       {saving && <Loader message="Updating Profile..." />}
-      <div className="w-full md:w-[80%] lg:w-[50%] mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-4 md:p-6 lg:p-8 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-500">
+      <div 
+        className="w-full md:w-[80%] lg:w-[50%] mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-4 md:p-6 lg:p-8 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-500"
+        style={{
+          opacity: 0,
+          transform: 'translateY(20px)',
+          animation: 'profileEntrance 0.8s ease-out forwards'
+        }}
+      >
+        <style>
+          {`
+            @keyframes profileEntrance {
+              0% {
+                opacity: 0;
+                transform: translateY(20px);
+              }
+              100% {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}
+        </style>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
           <h2 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Profile</h2>
           {!isEditing ? (
