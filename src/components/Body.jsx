@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -10,12 +10,16 @@ import { addUser } from "../store/slice";
 
 const Body = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.appData);
 
   const fetchUser = async () => {
     try {
       if (user) return;
+      // Don't redirect if we're on the signup page
+      if (location.pathname === "/signup") return;
+      
       const response = await axios.get(`${API_URL}/profile/view`, {});
       if (response.data.data) {
         dispatch(addUser(response.data.data));

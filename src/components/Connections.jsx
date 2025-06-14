@@ -1,19 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../utils/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addConnections } from "../store/slice";
+import Loader from "./utils/Loader";
 
 const ConnectionCard = ({ connection }) => {
   const { firstName, lastName, imgUrl, about, skills } = connection;
   return (
-    <div className="group relative overflow-hidden rounded-xl bg-base-300 w-full sm:w-80 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/[0.02]">
+    <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 w-full sm:w-80 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-700/50 hover:border-blue-500/50">
       {/* Subtle hover effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       
       <figure className="relative px-4 pt-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-base-300 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-300 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-30 transition-opacity duration-300 z-10"></div>
         <img
           src={imgUrl || "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg"}
           alt="profile"
@@ -50,6 +51,7 @@ const Connections = () => {
   const { connections = [] } = useSelector((state) => state.appData);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   const getConnections = async () => {
     try {
@@ -59,6 +61,8 @@ const Connections = () => {
       if (error.response?.status === 401) {
         navigate("/login", { replace: true });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,9 +72,10 @@ const Connections = () => {
 
   return (
     <div
-      className="bg-base-100 p-4 sm:p-6 pt-20 pb-24"
+      className="bg-gray-900 p-4 sm:p-6 pt-20 pb-24 relative"
       style={{ minHeight: "calc(100vh - 64px)" }}
     >
+      {loading && <Loader message="Loading Connections..." />}
       {connections?.length > 0 && (
         <h1 className="text-4xl font-extrabold mb-8 text-center select-none">
           <span className="bg-gradient-to-r from-blue-500 via-cyan-400 to-teal-400 text-transparent bg-clip-text inline-flex items-center gap-3 select-none">
@@ -81,7 +86,7 @@ const Connections = () => {
         </h1>
       )}
       <div className="container mx-auto max-w-7xl mb-16">
-        {connections?.length === 0 ? (
+        {connections?.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-12 border border-gray-700/50 relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500">
             {/* Animated background elements */}
             <div className="absolute opacity-20">

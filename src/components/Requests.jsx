@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { useToast } from "./utils/ToastContext";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { API_URL } from "../utils/constants";
@@ -12,6 +12,7 @@ const Requests = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const requests = useSelector((state) => state.appData.requests || []);
+  const { show } = useToast();
 
   const fetchRequests = async () => {
     try {
@@ -21,7 +22,7 @@ const Requests = () => {
       if (error.response?.status === 401) {
         navigate("/login", { replace: true });
       }
-      toast.error(error.response?.data?.message || "Failed to fetch requests");
+      show(error.response?.data?.message || "Failed to fetch requests", "error");
     }
   };
 
@@ -30,15 +31,9 @@ const Requests = () => {
       await axios.post(`${API_URL}/request/review/${status}/${requestId}`);
       // Remove the request from the store
       dispatch(removeRequest(requestId));
-      toast.success(
-        `Request ${
-          status === "accepted" ? "accepted" : "rejected"
-        } successfully!`
-      );
+      show(`Request ${status === "accepted" ? "accepted" : "rejected"} successfully!`, "success");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || `Failed to ${status} request`
-      );
+      show(error.response?.data?.message || `Failed to ${status} request`, "error");
     }
   };
 
@@ -49,20 +44,51 @@ const Requests = () => {
   return (
     <div className="bg-gray-900 p-4 sm:p-6 pt-20" style={{ height: "calc(100vh - 64px)" }}>
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          Connection Requests
-        </h1>
+        {requests.length > 0 && (
+          <h1 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            Connection Requests
+          </h1>
+        )}
         
         <div className="flex justify-center items-center">
           {requests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-[400px] w-full max-w-md mx-auto p-8 rounded-xl bg-gray-800/50 backdrop-blur-sm border border-gray-700">
-              <div className="p-4 rounded-full bg-gray-700/50 mb-6">
-                <FaUserPlus className="w-12 h-12 text-blue-400" />
+            <div className="flex flex-col items-center justify-center h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-12 border border-gray-700/50 relative overflow-hidden group hover:border-blue-500/50 transition-all duration-500">
+              {/* Animated background elements */}
+              <div className="absolute opacity-20">
+                <div className="absolute top-8 left-8 w-32 h-32 bg-blue-500 rounded-full filter blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-8 right-8 w-32 h-32 bg-purple-500 rounded-full filter blur-3xl animate-pulse delay-700"></div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-200 mb-2">No Pending Requests</h3>
-              <p className="text-gray-400 text-center">
+              
+              {/* Connection animation icon */}
+              <div className="mb-8 transform group-hover:scale-110 transition-transform duration-300">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-blue-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="absolute -right-1 -bottom-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-3">
+                No Pending Requests
+              </h3>
+              <p className="text-gray-400 text-center max-w-sm mb-6">
                 You'll see connection requests here when someone wants to connect with you!
               </p>
+              <button 
+                onClick={() => navigate('/')}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-white font-medium hover:shadow-lg hover:shadow-blue-500/25 transform hover:-translate-y-1 transition-all duration-300 cursor-pointer select-none"
+              >
+                Find Developers
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
