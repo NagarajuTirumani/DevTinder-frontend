@@ -11,7 +11,8 @@ const Profile = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.appData);
   const { show } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
@@ -25,18 +26,21 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    setProfile({
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
-      email: user?.email,
-      about: user?.about,
-      skills: user?.skills || [],
-      age: user?.age || "",
-      gender: user?.gender || "",
-      imgUrl:
-        user?.imgUrl ||
-        "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg",
-    });
+    if (user) {
+      setProfile({
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        email: user?.email,
+        about: user?.about,
+        skills: user?.skills || [],
+        age: user?.age || "",
+        gender: user?.gender || "",
+        imgUrl:
+          user?.imgUrl ||
+          "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg",
+      });
+      setLoading(false);
+    }
   }, [user]);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -46,7 +50,7 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true);
+    setSaving(true);
     const { email, ...restProfile } = profile;
     try {
       const response = await axios.patch(
@@ -61,7 +65,7 @@ const Profile = () => {
     } catch (error) {
       show(error.response?.data?.message || "Failed to update profile", "error");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -72,12 +76,16 @@ const Profile = () => {
     });
   };
 
+  if (loading) {
+    return <Loader message="Loading profile..." />;
+  }
+
   return (
     <div
       className="bg-gray-900 p-4 md:pt-20 pb-24 xs:pt-0 xs:pb-0 relative"
       style={{ minHeight: "calc(100vh - 64px)" }}
     >
-      {loading && <Loader message="Updating Profile..." />}
+      {saving && <Loader message="Updating Profile..." />}
       <div className="w-full md:w-[80%] lg:w-[50%] mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-4 md:p-6 lg:p-8 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
           <h2 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Profile</h2>
@@ -91,7 +99,7 @@ const Profile = () => {
           ) : (
             <button
               onClick={handleSave}
-              disabled={loading}
+              disabled={saving}
               className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-md hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Save Changes

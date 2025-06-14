@@ -30,7 +30,7 @@ const Signup = () => {
       console.log('Signup data:', formData);
       show('Account created successfully!', 'success');
       setTimeout(() => {
-        navigate('/login');
+        navigate('/profile');
       }, 2000);
     } catch (error) {
       show(error.response?.data?.message || 'Something went wrong', 'error');

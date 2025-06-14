@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -7,16 +7,21 @@ import { useToast } from "./utils/ToastContext";
 import { addFeed } from "../store/slice";
 import { API_URL } from "../utils/constants";
 import UserCard from "./UserCard";
+import Loader from "./utils/Loader";
 
 const Feed = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { feed } = useSelector((state) => state.appData);
   const { show } = useToast();
+  const [loading, setLoading] = useState(true);
 
   const getFeed = async () => {
     try {
-      if (feed) return;
+      if (feed) {
+        setLoading(false);
+        return;
+      }
       const response = await axios.get(`${API_URL}/user/feed`);
       if (response.data.data) {
         dispatch(addFeed(response.data.data));
@@ -25,11 +30,14 @@ const Feed = () => {
       if (error.status === 401) {
         navigate("/login", { replace: true });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleInterested = async (userId) => {
     try {
+      setLoading(true);
       await axios.post(`${API_URL}/request/send/interested/${userId}`);
       show("Request sent successfully!", "success");
       // Refresh feed after sending request
@@ -39,11 +47,14 @@ const Feed = () => {
       }
     } catch (error) {
       show(error.response?.data?.message || "Failed to send request", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleIgnore = async (userId) => {
     try {
+      setLoading(true);
       await axios.post(`${API_URL}/request/send/ignored/${userId}`);
       // Refresh feed after ignoring
       const response = await axios.get(`${API_URL}/user/feed`);
@@ -53,6 +64,8 @@ const Feed = () => {
       show("User ignored successfully!", "success");
     } catch (error) {
       show(error.response?.data?.message || "Failed to ignore user", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,6 +87,10 @@ const Feed = () => {
         },
       ]
     : [];
+
+  if (loading) {
+    return <Loader message="Loading feed..." />;
+  }
 
   if (feed && feed.length === 0) {
     return (

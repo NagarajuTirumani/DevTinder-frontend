@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useToast } from "./utils/ToastContext";
 import { useNavigate } from "react-router-dom";
@@ -7,15 +7,18 @@ import { API_URL } from "../utils/constants";
 import UserCard from "./UserCard";
 import { setRequests, removeRequest } from "../store/slice";
 import { FaUserPlus } from "react-icons/fa";
+import Loader from "./utils/Loader";
 
 const Requests = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const requests = useSelector((state) => state.appData.requests || []);
   const { show } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchRequests = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.get(`${API_URL}/user/requests/pending`);
       dispatch(setRequests(response.data.data || []));
     } catch (error) {
@@ -23,17 +26,22 @@ const Requests = () => {
         navigate("/login", { replace: true });
       }
       show(error.response?.data?.message || "Failed to fetch requests", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRequestAction = async (requestId, status) => {
     try {
+      setIsLoading(true);
       await axios.post(`${API_URL}/request/review/${status}/${requestId}`);
       // Remove the request from the store
       dispatch(removeRequest(requestId));
       show(`Request ${status === "accepted" ? "accepted" : "rejected"} successfully!`, "success");
     } catch (error) {
       show(error.response?.data?.message || `Failed to ${status} request`, "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +51,7 @@ const Requests = () => {
 
   return (
     <div className="bg-gray-900 p-4 sm:p-6 pt-20" style={{ height: "calc(100vh - 64px)" }}>
+      {isLoading && <Loader message="Loading requests..." />}
       <div className="max-w-7xl mx-auto">
         {requests.length > 0 && (
           <h1 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
