@@ -31,13 +31,13 @@ const ConnectionCard = ({ connection }) => {
           {skills?.slice(0, 3).map((skill, index) => (
             <span
               key={index}
-              className="px-3 py-1 bg-blue-900/30 text-blue-200 rounded-full text-xs font-medium hover:bg-blue-800/40 transition-all duration-300"
+              className="px-3 py-1 bg-gradient-to-r from-primary/80 to-secondary/80 text-primary-content rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-shadow duration-200"
             >
               {skill}
             </span>
           ))}
           {skills?.length > 3 && (
-            <span className="px-3 py-1 bg-gray-800/50 text-gray-300 rounded-full text-xs font-medium hover:bg-gray-700/50 transition-all duration-300">
+            <span className="px-3 py-1 bg-gradient-to-r from-primary/80 to-secondary/80 text-primary-content rounded-full text-xs font-medium shadow-sm hover:shadow-md transition-shadow duration-200">
               +{skills.length - 3} more
             </span>
           )}

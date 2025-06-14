@@ -112,12 +112,12 @@ const Requests = () => {
                       {
                         text: "Accept",
                         onClick: () => handleRequestAction(request._id, "accepted"),
-                        className: "btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200",
+                        className: "btn btn-primary",
                       },
                       {
                         text: "Reject",
                         onClick: () => handleRequestAction(request._id, "rejected"),
-                        className: "btn bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200",
+                        className: "btn btn-secondary",
                       },
                     ]}
                   />
