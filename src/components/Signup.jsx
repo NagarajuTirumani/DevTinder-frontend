@@ -2,37 +2,160 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch } from "react-redux";
+import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 import { API_URL } from "../utils/constants";
 import { useToast } from "./utils/ToastContext";
 import { addUser } from "../store/slice";
 
+const skillOptions = [
+  { value: "React", label: "React" },
+  { value: "Node.js", label: "Node.js" },
+  { value: "Python", label: "Python" },
+  { value: "Java", label: "Java" },
+  { value: "C++", label: "C++" },
+  { value: "UI/UX", label: "UI/UX" },
+  { value: "DevOps", label: "DevOps" },
+  { value: "ML/AI", label: "ML/AI" },
+];
+
+const genderOptions = [
+  { value: "Male", label: "Male" },
+  { value: "Female", label: "Female" },
+  { value: "Other", label: "Other" },
+];
+
 const Signup = () => {
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    otp: "",
     password: "",
+    age: "",
+    gender: "",
+    skills: [],
+    about: "",
+    imgUrl: "",
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [otpSent, setOtpSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { show } = useToast();
+
+  const validateStep1 = () => {
+    const errs = {};
+    if (!formData.firstName.trim()) errs.firstName = "First name is required";
+    if (!formData.lastName.trim()) errs.lastName = "Last name is required";
+    if (!formData.email.trim()) {
+      errs.email = "Email is required";
+    } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+      errs.email = "Invalid email address";
+    }
+    return errs;
+  };
+
+  const validateStep2 = () => {
+    const errs = {};
+    if (!formData.otp.trim()) errs.otp = "OTP is required";
+    if (!formData.password.trim()) {
+      errs.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      errs.password = "Password must be at least 6 characters";
+    }
+    if (!formData.age.trim()) {
+      errs.age = "Age is required";
+    } else if (
+      isNaN(formData.age) ||
+      +formData.age < 16 ||
+      +formData.age > 100
+    ) {
+      errs.age = "Enter a valid age (16-100)";
+    }
+    if (!formData.gender) errs.gender = "Gender is required";
+    if (!formData.skills.length) errs.skills = "Select at least one skill";
+    if (!formData.about.trim()) errs.about = "About is required";
+    // imgUrl is optional
+    return errs;
+  };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+  };
+
+  const handleSkillsChange = (selected) => {
+    // Handle both predefined and custom skills
+    const skills = selected ? selected.map(option => ({
+      value: option.value,
+      label: option.label
+    })) : [];
+    setFormData({ ...formData, skills });
+    setErrors((prev) => ({ ...prev, skills: undefined }));
+  };
+
+  const handleGenderChange = (selected) => {
+    setFormData({ ...formData, gender: selected ? selected.value : "" });
+    setErrors((prev) => ({ ...prev, gender: undefined }));
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    const errs = validateStep1();
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
+    setLoading(true);
+    try {
+      // Call API to send OTP
+      await axios.post(`${API_URL}/send-otp`, {
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      });
+      setOtpSent(true);
+      show("OTP sent to your email!", "success");
+      setStep(2);
+    } catch (error) {
+      show(error.response?.data?.message || "Failed to send OTP", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errs = validateStep2();
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/signup`, formData);
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        otp: formData.otp,
+        password: formData.password,
+        age: formData.age,
+        gender: formData.gender,
+        skills: formData.skills.map((s) => s.value),
+        about: formData.about,
+        ...(formData.imgUrl && { imgUrl: formData.imgUrl }),
+      };
+      const response = await axios.post(`${API_URL}/signup`, payload);
       if (response.data.data) {
         dispatch(addUser(response.data.data));
         show("Account created successfully!", "success");
@@ -41,10 +164,60 @@ const Signup = () => {
         }, 500);
       }
     } catch (error) {
-      show(error.response?.data?.message || "Something went wrong", "error");
+      show(error.response?.data?.message || "Signup failed", "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      backgroundColor: "#364152",
+      borderColor: state.isFocused
+        ? "#615FFF"
+        : errors.gender
+        ? "#f87171"
+        : "#4b5563",
+      borderWidth: state.isFocused ? "2px" : "1px",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: state.isFocused ? "#615FFF" : "#4b5563",
+      },
+      minHeight: "50px",
+    }),
+    singleValue: (base) => ({ ...base, color: "white" }),
+    input: (base) => ({ ...base, color: "white" }),
+    placeholder: (base) => ({ ...base, color: "#98A1AE" }),
+    menu: (base) => ({ ...base, backgroundColor: "#374151" }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? "#6366f1"
+        : state.isFocused
+        ? "#4b5563"
+        : "#374151",
+      color: "white",
+      "&:hover": {
+        backgroundColor: state.isSelected ? "#6366f1" : "#4b5563",
+      },
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: "#6366f1",
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: "white",
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: "white",
+      "&:hover": {
+        backgroundColor: "#4f46e5",
+        color: "white",
+      },
+    }),
   };
 
   return (
@@ -72,126 +245,310 @@ const Signup = () => {
             animate={{ scale: 1 }}
             className="text-2xl sm:text-3xl font-bold text-white mb-2"
           >
-            Create your account
+            {step === 1 ? "Create your account" : "Complete your profile"}
           </motion.h2>
           <p className="text-sm sm:text-base text-gray-400">
-            Join our community today
+            {step === 1
+              ? "Join our community today"
+              : "Enter OTP and more details"}
           </p>
         </div>
 
-        <form
-          className="mt-6 sm:mt-8 space-y-4 sm:space-y-6"
-          onSubmit={handleSubmit}
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaUser className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
-              </div>
-              <input
-                type="text"
-                name="firstName"
-                id="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                placeholder="First Name"
-                required
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaUser className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
-              </div>
-              <input
-                type="text"
-                name="lastName"
-                id="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                placeholder="Last Name"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FaEnvelope className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
-            </div>
-            <input
-              type="email"
-              name="email"
-              id="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FaLock className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
-            </div>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full cursor-pointer flex justify-center py-2 sm:py-3 px-4 rounded-lg text-sm sm:text-base text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        {step === 1 && (
+          <form
+            className="mt-6 sm:mt-8 space-y-4 sm:space-y-6"
+            onSubmit={handleSendOtp}
           >
-            {loading ? (
-              <svg
-                className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            ) : (
-              "Sign up"
-            )}
-          </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+                </div>
+                <input
+                  type="text"
+                  name="firstName"
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                    errors.firstName ? "border-red-500" : "border-gray-600"
+                  } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                  placeholder="First Name"
+                  required
+                />
+                {errors.firstName && (
+                  <span className="text-xs text-red-400">
+                    {errors.firstName}
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+                </div>
+                <input
+                  type="text"
+                  name="lastName"
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                    errors.lastName ? "border-red-500" : "border-gray-600"
+                  } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                  placeholder="Last Name"
+                  required
+                />
+                {errors.lastName && (
+                  <span className="text-xs text-red-400">
+                    {errors.lastName}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaEnvelope className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+              </div>
+              <input
+                type="email"
+                name="email"
+                id="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                  errors.email ? "border-red-500" : "border-gray-600"
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                placeholder="Enter your email"
+                required
+              />
+              {errors.email && (
+                <span className="text-xs text-red-400">{errors.email}</span>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full cursor-pointer flex justify-center py-2 sm:py-3 px-4 rounded-lg text-sm sm:text-base text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <svg
+                  className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                "Send OTP"
+              )}
+            </button>
+            <div className="mt-4 sm:mt-6 text-center">
+              <p className="text-sm sm:text-base text-gray-400">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="font-medium text-indigo-400 hover:text-indigo-300 transition duration-200 relative group"
+                >
+                  Sign in
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+              </p>
+            </div>
+          </form>
+        )}
 
-          <div className="mt-4 sm:mt-6 text-center">
-            <p className="text-sm sm:text-base text-gray-400">
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                className="font-medium text-indigo-400 hover:text-indigo-300 transition duration-200 relative group"
+        {step === 2 && (
+          <form
+            className="mt-6 sm:mt-8 space-y-4 sm:space-y-6"
+            onSubmit={handleSubmit}
+          >
+            <div className="relative">
+              <input
+                type="text"
+                name="otp"
+                id="otp"
+                value={formData.otp}
+                onChange={handleChange}
+                maxLength={6}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                  errors.otp ? "border-red-500" : "border-gray-600"
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                placeholder="Enter OTP"
+                required
+              />
+              {errors.otp && (
+                <span className="text-xs text-red-400">{errors.otp}</span>
+              )}
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaLock className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                id="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                  errors.password ? "border-red-500" : "border-gray-600"
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                placeholder="Enter your password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                Sign in
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
-              </Link>
-            </p>
-          </div>
-        </form>
+                {showPassword ? (
+                  <FaEyeSlash className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-indigo-500 transition-colors duration-200" />
+                ) : (
+                  <FaEye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-indigo-500 transition-colors duration-200" />
+                )}
+              </button>
+              {errors.password && (
+                <span className="text-xs text-red-400">{errors.password}</span>
+              )}
+            </div>
+            <div className="relative">
+              <input
+                type="number"
+                name="age"
+                id="age"
+                value={formData.age}
+                onChange={handleChange}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                  errors.age ? "border-red-500" : "border-gray-600"
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                placeholder="Age"
+                min="16"
+                max="100"
+                required
+              />
+              {errors.age && (
+                <span className="text-xs text-red-400">{errors.age}</span>
+              )}
+            </div>
+            <div className="relative">
+              <Select
+                options={genderOptions}
+                value={
+                  genderOptions.find((g) => g.value === formData.gender) || null
+                }
+                onChange={handleGenderChange}
+                placeholder="Select Gender"
+                classNamePrefix="react-select"
+                className="text-left react-select-container"
+                styles={customSelectStyles}
+              />
+              {errors.gender && (
+                <span className="text-xs text-red-400">{errors.gender}</span>
+              )}
+            </div>
+            <div className="relative">
+              <CreatableSelect
+                isMulti
+                options={skillOptions}
+                value={formData.skills}
+                onChange={handleSkillsChange}
+                placeholder="Select or create skills"
+                classNamePrefix="react-select"
+                className="text-left"
+                styles={customSelectStyles}
+                formatCreateLabel={(inputValue) => `Create skill "${inputValue}"`}
+                isValidNewOption={(inputValue) => inputValue.length >= 2}
+                createOptionPosition="first"
+              />
+              {errors.skills && (
+                <span className="text-xs text-red-400">{errors.skills}</span>
+              )}
+            </div>
+            <div className="relative">
+              <textarea
+                name="about"
+                id="about"
+                value={formData.about}
+                onChange={handleChange}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
+                  errors.about ? "border-red-500" : "border-gray-600"
+                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                placeholder="Tell us about yourself"
+                rows={3}
+                required
+              />
+              {errors.about && (
+                <span className="text-xs text-red-400">{errors.about}</span>
+              )}
+            </div>
+            <div className="relative">
+              <input
+                type="url"
+                name="imgUrl"
+                id="imgUrl"
+                value={formData.imgUrl}
+                onChange={handleChange}
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
+                placeholder="Profile Image URL (optional)"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full cursor-pointer flex justify-center py-2 sm:py-3 px-4 rounded-lg text-sm sm:text-base text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <svg
+                  className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                "Sign up"
+              )}
+            </button>
+            <div className="mt-4 sm:mt-6 text-center">
+              <p className="text-sm sm:text-base text-gray-400">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="font-medium text-indigo-400 hover:text-indigo-300 transition duration-200 relative group"
+                >
+                  Sign in
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
+                </Link>
+              </p>
+            </div>
+          </form>
+        )}
       </motion.div>
     </div>
   );
