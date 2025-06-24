@@ -7,26 +7,9 @@ import { useDispatch } from "react-redux";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
-import { API_URL } from "../utils/constants";
+import { API_URL, skillOptions, genderOptions } from "../utils/constants";
 import { useToast } from "./utils/ToastContext";
 import { addUser } from "../store/slice";
-
-const skillOptions = [
-  { value: "React", label: "React" },
-  { value: "Node.js", label: "Node.js" },
-  { value: "Python", label: "Python" },
-  { value: "Java", label: "Java" },
-  { value: "C++", label: "C++" },
-  { value: "UI/UX", label: "UI/UX" },
-  { value: "DevOps", label: "DevOps" },
-  { value: "ML/AI", label: "ML/AI" },
-];
-
-const genderOptions = [
-  { value: "Male", label: "Male" },
-  { value: "Female", label: "Female" },
-  { value: "Other", label: "Other" },
-];
 
 const Signup = () => {
   const [step, setStep] = useState(1);

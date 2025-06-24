@@ -6,6 +6,8 @@ import { useToast } from "./utils/ToastContext";
 import { API_URL } from "../utils/constants";
 import { addUser } from "../store/slice";
 import Loader from "./utils/Loader";
+import CreatableSelect from "react-select/creatable";
+import { skillOptions } from "../utils/constants";
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -74,6 +76,11 @@ const Profile = () => {
       ...profile,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleSkillsChange = (selected) => {
+    const skills = selected ? selected.map(option => option.value) : [];
+    setProfile({ ...profile, skills });
   };
 
   if (loading) {
@@ -254,16 +261,58 @@ const Profile = () => {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Skills
             </label>
-            <div className="flex flex-wrap gap-2 pb-8">
-              {profile.skills.map((skill, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-gradient-to-r from-primary/80 to-secondary/80 text-primary-content rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-shadow duration-200"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
+            {isEditing ? (
+              <CreatableSelect
+                isMulti
+                options={skillOptions}
+                value={profile.skills.map(skill => ({ value: skill, label: skill }))}
+                onChange={handleSkillsChange}
+                placeholder="Select or create skills"
+                classNamePrefix="react-select"
+                className="text-left"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#1f2937",
+                    borderColor: "#4b5563",
+                    minHeight: "44px",
+                  }),
+                  multiValue: (base) => ({ ...base, backgroundColor: "#6366f1" }),
+                  multiValueLabel: (base) => ({ ...base, color: "white" }),
+                  multiValueRemove: (base) => ({
+                    ...base,
+                    color: "white",
+                    ':hover': { backgroundColor: "#4f46e5", color: "white" },
+                  }),
+                  input: (base) => ({ ...base, color: "white" }),
+                  placeholder: (base) => ({ ...base, color: "#98A1AE" }),
+                  menu: (base) => ({ ...base, backgroundColor: "#374151" }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? "#6366f1"
+                      : state.isFocused
+                      ? "#4b5563"
+                      : "#374151",
+                    color: "white",
+                  }),
+                }}
+                formatCreateLabel={(inputValue) => `Create skill "${inputValue}"`}
+                isValidNewOption={(inputValue) => inputValue.length >= 2}
+                createOptionPosition="first"
+              />
+            ) : (
+              <div className="flex flex-wrap gap-2 pb-8">
+                {profile.skills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-gradient-to-r from-primary/80 to-secondary/80 text-primary-content rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-shadow duration-200"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
