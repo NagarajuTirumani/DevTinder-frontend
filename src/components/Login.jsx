@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
-import { FaEnvelope, FaLock } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 
 import { addUser } from "../store/slice";
 import { API_URL } from "../utils/constants";
@@ -11,10 +11,11 @@ import { useToast } from "./utils/ToastContext";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: "nagaraju@gmail.com",
-    password: "Nagaraju@44",
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { show } = useToast();
@@ -95,7 +96,7 @@ const Login = () => {
               <FaLock className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-500" />
             </div>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               id="password"
               value={formData.password}
@@ -104,6 +105,17 @@ const Login = () => {
               placeholder="Enter your password"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              {showPassword ? (
+                <FaEyeSlash className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-indigo-500 transition-colors duration-200" />
+              ) : (
+                <FaEye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-indigo-500 transition-colors duration-200" />
+              )}
+            </button>
           </div>
 
           <button
