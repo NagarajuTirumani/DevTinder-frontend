@@ -65,7 +65,7 @@ const Signup = () => {
     if (!formData.gender) errs.gender = "Gender is required";
     if (!formData.skills.length) errs.skills = "Select at least one skill";
     if (!formData.about.trim()) errs.about = "About is required";
-    // imgUrl is optional
+    if (!formData.profilePhoto) errs.profilePhoto = "Profile photo is required";
     return errs;
   };
 
@@ -97,6 +97,7 @@ const Signup = () => {
     const errs = validateStep1();
     if (Object.keys(errs).length) {
       setErrors(errs);
+      show("Please fill all the fields", "error");
       return;
     }
     setLoading(true);
@@ -173,10 +174,13 @@ const Signup = () => {
         : "#4b5563",
       borderWidth: state.isFocused ? "2px" : "1px",
       boxShadow: "none",
+      outline: "none",
+      outlineColor: "transparent",
       "&:hover": {
         borderColor: state.isFocused ? "#615FFF" : "#4b5563",
       },
       minHeight: "50px",
+      borderRadius: 8,
     }),
     singleValue: (base) => ({ ...base, color: "white" }),
     input: (base) => ({ ...base, color: "white" }),
@@ -254,17 +258,13 @@ const Signup = () => {
                   id="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                    errors.firstName ? "border-red-500" : "border-gray-600"
-                  } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                  className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                    errors.firstName
+                      ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                      : "border border-gray-600 text-white placeholder-gray-400"
+                  } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                   placeholder="First Name"
-                  required
                 />
-                {errors.firstName && (
-                  <span className="text-xs text-red-400">
-                    {errors.firstName}
-                  </span>
-                )}
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -276,17 +276,13 @@ const Signup = () => {
                   id="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                    errors.lastName ? "border-red-500" : "border-gray-600"
-                  } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                  className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                    errors.lastName
+                      ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                      : "border border-gray-600 text-white placeholder-gray-400"
+                  } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                   placeholder="Last Name"
-                  required
                 />
-                {errors.lastName && (
-                  <span className="text-xs text-red-400">
-                    {errors.lastName}
-                  </span>
-                )}
               </div>
             </div>
             <div className="relative">
@@ -299,15 +295,13 @@ const Signup = () => {
                 id="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                  errors.email ? "border-red-500" : "border-gray-600"
-                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                  errors.email
+                    ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                    : "border border-gray-600 text-white placeholder-gray-400"
+                } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                 placeholder="Enter your email"
-                required
               />
-              {errors.email && (
-                <span className="text-xs text-red-400">{errors.email}</span>
-              )}
             </div>
             <button
               type="submit"
@@ -367,15 +361,13 @@ const Signup = () => {
                 value={formData.otp}
                 onChange={handleChange}
                 maxLength={6}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                  errors.otp ? "border-red-500" : "border-gray-600"
-                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                  errors.otp
+                    ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                    : "border border-gray-600 text-white placeholder-gray-400"
+                } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                 placeholder="Enter OTP"
-                required
               />
-              {errors.otp && (
-                <span className="text-xs text-red-400">{errors.otp}</span>
-              )}
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -387,11 +379,12 @@ const Signup = () => {
                 id="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                  errors.password ? "border-red-500" : "border-gray-600"
-                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                className={`pl-9 sm:pl-10 w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                  errors.password
+                    ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                    : "border border-gray-600 text-white placeholder-gray-400"
+                } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                 placeholder="Enter your password"
-                required
               />
               <button
                 type="button"
@@ -404,9 +397,6 @@ const Signup = () => {
                   <FaEye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-indigo-500 transition-colors duration-200" />
                 )}
               </button>
-              {errors.password && (
-                <span className="text-xs text-red-400">{errors.password}</span>
-              )}
             </div>
             <div className="relative">
               <input
@@ -415,17 +405,15 @@ const Signup = () => {
                 id="age"
                 value={formData.age}
                 onChange={handleChange}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                  errors.age ? "border-red-500" : "border-gray-600"
-                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                  errors.age
+                    ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                    : "border border-gray-600 text-white placeholder-gray-400"
+                } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                 placeholder="Age"
                 min="16"
                 max="100"
-                required
               />
-              {errors.age && (
-                <span className="text-xs text-red-400">{errors.age}</span>
-              )}
             </div>
             <div className="relative">
               <Select
@@ -436,12 +424,25 @@ const Signup = () => {
                 onChange={handleGenderChange}
                 placeholder="Select Gender"
                 classNamePrefix="react-select"
-                className="text-left react-select-container"
-                styles={customSelectStyles}
+                className="text-left react-select-container bg-transparent"
+                styles={{
+                  ...customSelectStyles,
+                  control: (base, state) => ({
+                    ...base,
+                    backgroundColor: "#364152",
+                    borderColor: errors.gender ? "#ef4444" : state.isFocused ? "#615FFF" : "#4b5563",
+                    borderWidth: errors.gender ? "1px" : state.isFocused ? "2px" : "1px",
+                    boxShadow: "none",
+                    outline: "none",
+                    outlineColor: "transparent",
+                    "&:hover": {
+                      borderColor: state.isFocused ? "#615FFF" : errors.gender ? "#ef4444" : "#4b5563",
+                    },
+                    minHeight: "50px",
+                    borderRadius: 8,
+                  }),
+                }}
               />
-              {errors.gender && (
-                <span className="text-xs text-red-400">{errors.gender}</span>
-              )}
             </div>
             <div className="relative">
               <CreatableSelect
@@ -451,15 +452,28 @@ const Signup = () => {
                 onChange={handleSkillsChange}
                 placeholder="Select or create skills"
                 classNamePrefix="react-select"
-                className="text-left"
-                styles={customSelectStyles}
+                className="text-left bg-transparent"
+                styles={{
+                  ...customSelectStyles,
+                  control: (base, state) => ({
+                    ...base,
+                    backgroundColor: "#364152",
+                    borderColor: errors.skills ? "#ef4444" : state.isFocused ? "#615FFF" : "#4b5563",
+                    borderWidth: errors.skills ? "1px" : state.isFocused ? "2px" : "1px",
+                    boxShadow: "none",
+                    outline: "none",
+                    outlineColor: "transparent",
+                    "&:hover": {
+                      borderColor: state.isFocused ? "#615FFF" : errors.skills ? "#ef4444" : "#4b5563",
+                    },
+                    minHeight: "50px",
+                    borderRadius: 8,
+                  }),
+                }}
                 formatCreateLabel={(inputValue) => `Create skill "${inputValue}"`}
                 isValidNewOption={(inputValue) => inputValue.length >= 2}
                 createOptionPosition="first"
               />
-              {errors.skills && (
-                <span className="text-xs text-red-400">{errors.skills}</span>
-              )}
             </div>
             <div className="relative">
               <textarea
@@ -467,16 +481,14 @@ const Signup = () => {
                 id="about"
                 value={formData.about}
                 onChange={handleChange}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border ${
-                  errors.about ? "border-red-500" : "border-gray-600"
-                } rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
+                className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base ${
+                  errors.about
+                    ? "border-[1px] border-[#ef4444] shadow-[0_0_0_2px_rgba(239,68,68,0.1)]"
+                    : "border border-gray-600 text-white placeholder-gray-400"
+                } bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200`}
                 placeholder="Tell us about yourself"
                 rows={3}
-                required
               />
-              {errors.about && (
-                <span className="text-xs text-red-400">{errors.about}</span>
-              )}
             </div>
             <div className="relative">
               <div className="flex flex-col items-center space-y-4">
@@ -488,7 +500,9 @@ const Signup = () => {
                       className="w-24 h-24 rounded-full object-cover border-2 border-indigo-500"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-gray-700 border-2 border-dashed border-gray-500 flex items-center justify-center">
+                    <div className={`w-24 h-24 rounded-full bg-gray-700 border-2 border-dashed flex items-center justify-center ${
+                      errors.profilePhoto ? "border-2 border-[#ef4444]" : "border-gray-500"
+                    }`}>
                       <svg
                         className="w-8 h-8 text-gray-400"
                         fill="none"
@@ -508,7 +522,9 @@ const Signup = () => {
                 <div className="w-full">
                   <label
                     htmlFor="profilePhoto"
-                    className="flex flex-col items-center w-full max-w-lg mx-auto cursor-pointer bg-gray-700 border-2 border-gray-600 border-dashed rounded-lg hover:bg-gray-600 hover:border-indigo-500 transition-colors duration-200"
+                    className={`flex flex-col items-center w-full max-w-lg mx-auto cursor-pointer bg-gray-700 border-2 border-dashed rounded-lg hover:bg-gray-600 hover:border-indigo-500 transition-colors duration-200 ${
+                      errors.profilePhoto ? "border-2 border-[#ef4444]" : "border-gray-600"
+                    }`}
                   >
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <svg
@@ -527,7 +543,7 @@ const Signup = () => {
                       <p className="mb-2 text-sm text-gray-400">
                         <span className="font-semibold">Click to upload</span> or drag and drop
                       </p>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB <span className="text-red-400">*</span></p>
                     </div>
                     <input
                       id="profilePhoto"
@@ -545,6 +561,7 @@ const Signup = () => {
                           const reader = new FileReader();
                           reader.onloadend = () => {
                             setFormData({ ...formData, profilePhoto: reader.result });
+                            setErrors((prev) => ({ ...prev, profilePhoto: undefined }));
                           };
                           reader.readAsDataURL(file);
                         }
@@ -555,7 +572,10 @@ const Signup = () => {
                 {formData.profilePhoto && (
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, profilePhoto: null })}
+                    onClick={() => {
+                      setFormData({ ...formData, profilePhoto: null });
+                      setErrors((prev) => ({ ...prev, profilePhoto: undefined }));
+                    }}
                     className="text-sm text-red-400 hover:text-red-300 transition-colors duration-200"
                   >
                     Remove photo
