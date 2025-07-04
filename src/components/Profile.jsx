@@ -15,6 +15,7 @@ const Profile = () => {
   const { show } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
@@ -25,7 +26,9 @@ const Profile = () => {
     gender: "",
     imgUrl:
       "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg",
+    imgId: "",
   });
+  const [profilePhoto, setProfilePhoto] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -40,12 +43,11 @@ const Profile = () => {
         imgUrl:
           user?.imgUrl ||
           "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg",
+        imgId: user?.imgId || "",
       });
       setLoading(false);
     }
   }, [user]);
-
-  const [isEditing, setIsEditing] = useState(false);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -56,12 +58,34 @@ const Profile = () => {
     // eslint-disable-next-line no-unused-vars
     const { email, ...restProfile } = profile;
     try {
+      const formData = new FormData();
+      formData.append('firstName', restProfile.firstName);
+      formData.append('lastName', restProfile.lastName);
+      formData.append('about', restProfile.about);
+      formData.append('skills', JSON.stringify(restProfile.skills));
+      formData.append('age', restProfile.age);
+      formData.append('gender', restProfile.gender);
+      formData.append('imgId', restProfile.imgId);
+      
+      if (profilePhoto) {
+        // Convert base64 to blob
+        const response = await fetch(profilePhoto);
+        const blob = await response.blob();
+        formData.append('profilePhoto', blob, 'profile-photo.jpg');
+      }
+
       const response = await axios.patch(
         `${API_URL}/profile/edit`,
-        restProfile
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
       if (response.data.data) {
         setIsEditing(false);
+        setProfilePhoto(null);
         dispatch(addUser(response.data.data));
         show("Profile updated successfully!", "success");
       }
@@ -82,6 +106,26 @@ const Profile = () => {
   const handleSkillsChange = (selected) => {
     const skills = selected ? selected.map(option => option.value) : [];
     setProfile({ ...profile, skills });
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    console.log("file", file)
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        show("File size should be less than 10MB", "error");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setProfilePhoto(null);
   };
 
   if (loading) {
@@ -139,19 +183,56 @@ const Profile = () => {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row items-center gap-4 sm:space-x-8">
             <img
-              src={profile.imgUrl}
+              src={profilePhoto || profile.imgUrl}
               alt="Profile"
               className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-lg border-2 border-gray-700/50"
             />
             {isEditing && (
-              <input
-                type="text"
-                name="imgUrl"
-                value={profile.imgUrl}
-                onChange={handleChange}
-                placeholder="Enter image URL"
-                className="w-full mt-1 px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-100"
-              />
+              <div className="flex flex-col items-center space-y-4 w-full sm:w-auto">
+                <div className="w-full sm:w-64">
+                  <label
+                    htmlFor="profilePhoto"
+                    className="flex flex-col items-center w-full cursor-pointer bg-gray-800/50 border-2 border-gray-700/50 border-dashed rounded-lg hover:bg-gray-700/50 hover:border-blue-500/50 transition-colors duration-200"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg
+                        className="w-8 h-8 mb-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      <p className="mb-2 text-sm text-gray-400">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                    <input
+                      id="profilePhoto"
+                      name="profilePhoto"
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                </div>
+                {profilePhoto && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="text-sm text-red-400 hover:text-red-300 transition-colors duration-200"
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
