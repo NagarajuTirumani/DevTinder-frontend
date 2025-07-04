@@ -9,7 +9,7 @@ export const userSlice = createSlice({
     addUser: (state, action) => {
       state.user = action.payload;
     },
-    removeUser: (state, action) => {
+    removeUser: (state) => {
       state.user = null;
     },
     addFeed: (state, action) => {
@@ -26,7 +26,7 @@ export const userSlice = createSlice({
         (request) => request._id !== action.payload
       );
     },
-    resetStore: (state) => {
+    resetStore: () => {
       return initialState;
     },
   },

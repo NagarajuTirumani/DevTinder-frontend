@@ -53,6 +53,7 @@ const Profile = () => {
 
   const handleSave = async () => {
     setSaving(true);
+    // eslint-disable-next-line no-unused-vars
     const { email, ...restProfile } = profile;
     try {
       const response = await axios.patch(

@@ -23,11 +23,10 @@ const Signup = () => {
     gender: "",
     skills: [],
     about: "",
-    imgUrl: "",
+    profilePhoto: null,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [otpSent, setOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -107,7 +106,6 @@ const Signup = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
       });
-      setOtpSent(true);
       show("OTP sent to your email!", "success");
       setStep(2);
     } catch (error) {
@@ -126,19 +124,29 @@ const Signup = () => {
     }
     setLoading(true);
     try {
-      const payload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        otp: formData.otp,
-        password: formData.password,
-        age: formData.age,
-        gender: formData.gender,
-        skills: formData.skills.map((s) => s.value),
-        about: formData.about,
-        ...(formData.imgUrl && { imgUrl: formData.imgUrl }),
-      };
-      const response = await axios.post(`${API_URL}/signup`, payload);
+      const formDataToSend = new FormData();
+      formDataToSend.append('firstName', formData.firstName);
+      formDataToSend.append('lastName', formData.lastName);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('otp', formData.otp);
+      formDataToSend.append('password', formData.password);
+      formDataToSend.append('age', formData.age);
+      formDataToSend.append('gender', formData.gender);
+      formDataToSend.append('skills', JSON.stringify(formData.skills.map((s) => s.value)));
+      formDataToSend.append('about', formData.about);
+      
+      if (formData.profilePhoto) {
+        // Convert base64 to blob
+        const response = await fetch(formData.profilePhoto);
+        const blob = await response.blob();
+        formDataToSend.append('profilePhoto', blob, 'profile-photo.jpg');
+      }
+      const response = await axios.post(`${API_URL}/signup`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
       if (response.data.data) {
         dispatch(addUser(response.data.data));
         show("Account created successfully!", "success");
@@ -205,16 +213,8 @@ const Signup = () => {
 
   return (
     <div
-      className="flex items-center justify-center bg-gray-900"
-      style={{
-        height: "100vh",
-        overflow: "hidden",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-      }}
+      className="flex items-center justify-center bg-gray-900 min-h-screen overflow-y-auto pb-20"
+      style={{ minHeight: '100vh' }}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -478,15 +478,89 @@ const Signup = () => {
               )}
             </div>
             <div className="relative">
-              <input
-                type="url"
-                name="imgUrl"
-                id="imgUrl"
-                value={formData.imgUrl}
-                onChange={handleChange}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200"
-                placeholder="Profile Image URL (optional)"
-              />
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative w-24 h-24 mx-auto">
+                  {formData.profilePhoto ? (
+                    <img
+                      src={formData.profilePhoto}
+                      alt="Profile preview"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-indigo-500"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-gray-700 border-2 border-dashed border-gray-500 flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="w-full">
+                  <label
+                    htmlFor="profilePhoto"
+                    className="flex flex-col items-center w-full max-w-lg mx-auto cursor-pointer bg-gray-700 border-2 border-gray-600 border-dashed rounded-lg hover:bg-gray-600 hover:border-indigo-500 transition-colors duration-200"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg
+                        className="w-8 h-8 mb-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      <p className="mb-2 text-sm text-gray-400">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                    <input
+                      id="profilePhoto"
+                      name="profilePhoto"
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (file.size > 10 * 1024 * 1024) {
+                            show("File size should be less than 10MB", "error");
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setFormData({ ...formData, profilePhoto: reader.result });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {formData.profilePhoto && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, profilePhoto: null })}
+                    className="text-sm text-red-400 hover:text-red-300 transition-colors duration-200"
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
             </div>
             <button
               type="submit"

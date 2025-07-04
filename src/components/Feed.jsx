@@ -71,6 +71,7 @@ const Feed = () => {
 
   useEffect(() => {
     getFeed();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const feedButtons = feed?.[0]
