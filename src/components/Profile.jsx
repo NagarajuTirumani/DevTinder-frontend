@@ -9,6 +9,8 @@ import Loader from "./utils/Loader";
 import CreatableSelect from "react-select/creatable";
 import { skillOptions } from "../utils/constants";
 
+axios.defaults.withCredentials = true;
+
 const Profile = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.appData);

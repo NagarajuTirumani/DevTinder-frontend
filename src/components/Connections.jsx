@@ -5,9 +5,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addConnections } from "../store/slice";
 import Loader from "./utils/Loader";
+import { FaRegPaperPlane } from "react-icons/fa";
 
 const ConnectionCard = ({ connection }) => {
-  const { firstName, lastName, imgUrl, about, skills } = connection;
+  const { firstName, lastName, imgUrl, about, skills, _id } = connection;
+  const navigate = useNavigate();
+
   return (
     <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 w-full sm:w-80 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-700/50 hover:border-blue-500/50">
       {/* Subtle hover effect */}
@@ -42,6 +45,13 @@ const ConnectionCard = ({ connection }) => {
             </span>
           )}
         </div>
+        <button
+          className="mt-4 w-[120px] flex items-center gap-2 px-4 py-2 cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full font-medium shadow hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 focus:outline-none"
+          onClick={() => navigate(`/chat/${_id}`)}
+        >
+          <FaRegPaperPlane className="text-lg" />
+          Message
+        </button>
       </div>
     </div>
   );
