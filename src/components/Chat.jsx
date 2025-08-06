@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import { API_URL } from "../utils/constants";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 const users = {
   self: {
@@ -17,37 +18,10 @@ const users = {
   },
 };
 
-const sampleMessages = [
-  {
-    id: 1,
-    userId: 2,
-    text: "Hey! 👋 Looking for a React partner?",
-    time: "10:00 AM",
-  },
-  {
-    id: 2,
-    userId: 1,
-    text: "Hi Alex! Yes, I love React. What are you working on?",
-    time: "10:01 AM",
-  },
-  {
-    id: 3,
-    userId: 2,
-    text: "Building a cool DevTinder clone. Want to join?",
-    time: "10:02 AM",
-  },
-  {
-    id: 4,
-    userId: 1,
-    text: "That sounds awesome! Count me in 🚀",
-    time: "10:03 AM",
-  },
-];
-
 const socket = io(API_URL);
 
 function Chat() {
-  const [messages, setMessages] = useState(sampleMessages);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
   const { user } = useSelector((state) => state.appData);
@@ -63,20 +37,18 @@ function Chat() {
       socket.join();
     });
 
-    socket.emit("join-room", { currentUserId: user._id, toUserId: toUserId });
+    socket.emit("join-room", { fromUserId: user._id, toUserId: toUserId });
 
     socket.on("send-message", (msg) => {
-      if (msg.currentUserId === user._id) return;
+      if (msg.fromUserId === user._id) return;
       setMessages((prev) => [
         ...prev,
         {
-          id: prev.length + 1,
-          userId: msg.currentUserId,
-          text: msg.message,
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          _id: Date.now().toString(), // temporary ID
+          fromUserId: msg.fromUserId,
+          message: msg.message,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       ]);
     });
@@ -86,24 +58,41 @@ function Chat() {
     };
   }, [user, toUserId]);
 
+  const fetchMessages = async () => {
+    try {
+      const res = await axios.post(`${API_URL}/chat/`, {
+        toUserId,
+      });
+      console.log(res.data.data.messages);
+      if (res.data && Array.isArray(res.data.data.messages)) {
+        setMessages(res.data.data.messages);
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toUserId]);
+
   const handleSend = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
     socket.emit("send-message", {
       message: input,
-      currentUserId: user._id,
+      fromUserId: user._id,
       toUserId: toUserId,
     });
     setMessages((msgs) => [
       ...msgs,
       {
-        id: msgs.length + 1,
-        userId: users.self.id,
-        text: input,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        _id: Date.now().toString(), // temporary ID
+        fromUserId: user._id,
+        message: input,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
     ]);
     setInput("");
@@ -129,16 +118,24 @@ function Chat() {
         style={{ minHeight: 0 }}
       >
         {messages.map((msg) => {
-          const isSelf = msg.userId === users.self.id;
-          const user = isSelf ? users.self : users.other;
+          const isSelf = msg.fromUserId === user._id;
+          const displayUser = isSelf ? users.self : users.other;
+          const formatTime = (dateString) => {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          };
+
           return (
             <div
-              key={msg.id}
+              key={msg._id}
               className={`flex ${isSelf ? "justify-end" : "justify-start"}`}
             >
               {!isSelf && (
                 <img
-                  src={user.avatar}
+                  src={displayUser.avatar}
                   alt="avatar"
                   className="w-8 h-8 rounded-full object-cover mr-2 self-end border border-blue-400"
                 />
@@ -150,14 +147,14 @@ function Chat() {
                     : "bg-gray-700 text-gray-100 rounded-bl-none"
                 }`}
               >
-                <div>{msg.text}</div>
+                <div>{msg.message}</div>
                 <div className="text-[10px] text-gray-300 mt-1 text-right">
-                  {msg.time}
+                  {formatTime(msg.createdAt)}
                 </div>
               </div>
               {isSelf && (
                 <img
-                  src={user.avatar}
+                  src={displayUser.avatar}
                   alt="avatar"
                   className="w-8 h-8 rounded-full object-cover ml-2 self-end border border-purple-400"
                 />
