@@ -4,25 +4,15 @@ import { API_URL } from "../utils/constants";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-
-const users = {
-  self: {
-    id: 1,
-    name: "You",
-    avatar: "/devtinder.png",
-  },
-  other: {
-    id: 2,
-    name: "Alex",
-    avatar: "/vite.svg",
-  },
-};
+import Loader from "./utils/Loader";
 
 const socket = io(API_URL);
 
 function Chat() {
   const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState({});
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const { user } = useSelector((state) => state.appData);
   const { toUserId } = useParams();
@@ -60,15 +50,27 @@ function Chat() {
 
   const fetchMessages = async () => {
     try {
+      setLoading(true);
       const res = await axios.post(`${API_URL}/chat/`, {
         toUserId,
       });
       console.log(res.data.data.messages);
-      if (res.data && Array.isArray(res.data.data.messages)) {
+      if (res?.data && Array.isArray(res?.data?.data?.messages)) {
         setMessages(res.data.data.messages);
+      }
+      if (res?.data && Array.isArray(res?.data?.data?.participants)) {
+        const currentUser = res.data.data.participants.find(
+          (participant) => participant._id !== toUserId
+        );
+        const otherUser = res.data.data.participants.find(
+          (participant) => participant._id === toUserId
+        );
+        setUsers({ self: currentUser, other: otherUser });
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,17 +100,23 @@ function Chat() {
     setInput("");
   };
 
+  if (loading || !users?.other || !users?.self) {
+    return <Loader message="Loading chat..." />;
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-128px)] max-w-2xl mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl border border-gray-700/50 p-0 sm:p-4 relative overflow-hidden">
       {/* Chat header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-700/50 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
         <img
-          src={users.other.avatar}
+          src={users?.other?.imgUrl}
           alt="avatar"
           className="w-10 h-10 rounded-full object-cover border-2 border-blue-400"
         />
         <div>
-          <div className="font-bold text-white text-lg">{users.other.name}</div>
+          <div className="font-bold text-white text-lg">
+            {users?.other?.firstName + " " + users?.other?.lastName}
+          </div>
           <div className="text-xs text-gray-400">Online</div>
         </div>
       </div>
@@ -119,7 +127,7 @@ function Chat() {
       >
         {messages.map((msg) => {
           const isSelf = msg.fromUserId === user._id;
-          const displayUser = isSelf ? users.self : users.other;
+          const displayUser = isSelf ? users?.self : users?.other;
           const formatTime = (dateString) => {
             const date = new Date(dateString);
             return date.toLocaleTimeString([], {
@@ -135,7 +143,7 @@ function Chat() {
             >
               {!isSelf && (
                 <img
-                  src={displayUser.avatar}
+                  src={displayUser?.imgUrl}
                   alt="avatar"
                   className="w-8 h-8 rounded-full object-cover mr-2 self-end border border-blue-400"
                 />
@@ -154,7 +162,7 @@ function Chat() {
               </div>
               {isSelf && (
                 <img
-                  src={displayUser.avatar}
+                  src={displayUser?.imgUrl}
                   alt="avatar"
                   className="w-8 h-8 rounded-full object-cover ml-2 self-end border border-purple-400"
                 />
